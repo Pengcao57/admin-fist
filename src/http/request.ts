@@ -15,7 +15,7 @@ interface BaseResponse<T =any>{
     status?: number |string;
 }
 const service =axios.create ( {
-    baseURL: import.meta.env.VITE_APP_BASE_API,
+    baseURL: import.meta.env.VITE_APP_BASE_USE_MOck ? import.meta.env.VITE_APP_BASE_USE_MOCK_PREFIX : import.meta.env.VITE_APP_BASE_USE_BASEURL ,
     timeout: 15000,
      
 })
