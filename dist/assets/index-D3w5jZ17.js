@@ -1,0 +1,1 @@
+import{f as t,g as n,h as o,o as s}from"./vendor-DgN6yt9k.js";const c={},r={class:"wrap-content"};function a(d,e){return s(),n("div",r,e[0]||(e[0]=[o("h1",null,"Vite+ Vue 3+ TypeScript+ Element 企业中台最佳",-1)]))}const i=t(c,[["render",a],["__scopeId","data-v-80c6ed4e"]]);export{i as default};

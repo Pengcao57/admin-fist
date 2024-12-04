@@ -1,7 +1,9 @@
 import { RouteRecordRaw ,createRouter, createWebHashHistory  } from 'vue-router';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
-
+import { useSettingStore } from '@/store/setting';
+import { getTitle } from '@/utils';
+const settingStore = useSettingStore();
 // 配置路由
 // const routes: Array<RouteRecordRaw> = [{
 //   path: '/',
@@ -39,9 +41,42 @@ const router = createRouter({
   history: createWebHashHistory(),
   routes,
 });
+// export function getTitle(name:string, routes: RouteRecordNormalized[]){
+//   const names:string[] = [];
+    
+//   while (true){
+//     names.push(name);
+//     const currentRouteObj = routes.find((item) => item.name===name);
+//     const parentRouterObj = routes.find((item) => item.name === currentRouteObj?.meta?.parentRouter);
+//     if (parentRouterObj){
+//       name =parentRouterObj.name  as string;
+//       continue;
+    
+//     }else {
+//       break;
+//     }
+//   }
+//    return names.reverse();
+// }
+const handleRouters = (currentName:string) => {
+  console.log(currentName);
+  console.log('router',router.getRoutes());
+  const titles = getTitle(currentName, router.getRoutes());
+  settingStore.setTitle(titles);
+
+}; 
+const noStatusPage = ['/login','/about'];
 router.beforeEach(async (_to, _from, next) => {
   NProgress.start();
-  next();
+  const token =sessionStorage.getItem('userInfo');
+  const userIsLogin =token ? true : false;
+  if (userIsLogin || noStatusPage.includes(_to.path)) {
+    next();
+  } else {
+    next('/login');
+  }
+  handleRouters(_to.name as string);
+  // next();
 });
 router.afterEach((_to) => {
   NProgress.done();

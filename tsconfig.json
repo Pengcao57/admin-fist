@@ -68,7 +68,8 @@
         "build/**/*.ts",
         "build/**/*.d.ts",
         "mock/**/*.ts",
-        "vite.config.ts"
+        "test/*.test.ts",
+        "vite.config.ts",
     ],
     // 指定不需要编译的文件
     "exclude": [

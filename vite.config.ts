@@ -1,5 +1,7 @@
 import { defineConfig, loadEnv } from 'vite';
 import { viteMockServe } from "vite-plugin-mock";
+import {visualizer} from "rollup-plugin-visualizer";
+import externalGlobals from 'rollup-plugin-external-globals';
 import type { UserConfig, ConfigEnv } from 'vite';
 import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 import IconsResolver from "unplugin-icons/resolver";
@@ -10,7 +12,21 @@ import { fileURLToPath } from 'url';
 import AutoImport from "unplugin-auto-import/vite";
 import vue from '@vitejs/plugin-vue';
 import vueJsx from '@vitejs/plugin-vue-jsx';
+import ViteCompression from "vite-plugin-compression";
+import brotli from "rollup-plugin-brotli";
+import experimentalMinChunkSize from 'rollup-plugin-minify-html-literals';
+import {createHtmlPlugin} from "vite-plugin-html";
+import  {manualChunksPlugin} from 'vite-plugin-webpackchunkname';
 
+// import { S } from 'vitest/dist/chunks/reporters.D7Jzd9GS';
+
+const globals = externalGlobals({
+  moment: 'moment',
+  'video.js': 'videojs',
+  jspdf: 'jspdf',
+  xlsx: 'XLSX',
+  echart: 'echart'
+});
 export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
   // 获取当前工作目录
   const root = process.cwd();
@@ -23,20 +39,51 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
     base: './',
     publicDir: fileURLToPath(new URL('./public', import.meta.url)), // 无需处理的静态资源位置
     assetsInclude: fileURLToPath(new URL('./src/assets', import.meta.url)), // 需要处理的静态资源位置
+    css:{
+      preprocessorOptions: {
+        less: {
+             additionalData: `@import "@/styles/variable.less";`
+      },
+    }
+  },
     plugins: [
+      // brotli({}),
+      // ViteCompression({
+      //   threshold: 1024 * 20, // 大小超过该值才会被压缩
+      //   ext: '.gz',
+      //   algorithm: 'gzip', // 压缩算法
+      // }),
       // Vue模板文件编译插件
+      createHtmlPlugin({
+          inject: {
+              data: {
+                monentscript: '<script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/min/moment.js"></script>',
+                videoscript: '<script src="https://cdn.jsdelivr.net/npm/video.js@7.14.3/dist/video.min.js"></script>',
+                echartscript: '<script src="https://cdn.jsdelivr.net/npm/echarts@5.2.1/echarts"></script>',
+                jspdfscript: '<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/pdf.js"></script>',
+                xlsxscript:  '<script src="https://cdn.jsdelivr.net/npm/xlsx@0.17.4/dist/xlsx.full.min.js"></script>'
+              }
+          }
+      }),
       vue(),
       // jsx文件编译插件
       vueJsx(), 
       viteMockServe({
         // 如果接口为 /mock/xxx 以 mock 开头就会被拦截响应配置的内容
         mockPath: 'mock', // 数据模拟需要拦截的请求起始 URL
-        localEnabled: true, // 本地开发是否启用
-        prodEnabled: false, // 生产模式是否启用
+        enable: true, // 本地开发是否启用
+        // prodEnabled: false, // 生产模式是否启用
       }),
       ElementPlus({}),
       // 自动引入组件及ICON
       AutoImport({
+          //定义需要自动引入的框架
+          imports:[ 'vue', 'vue-router', 'pinia' ],
+          //定义处理elsint
+          eslintrc: {
+              enabled: true,
+              filepath: './.eslintrc-auto-import.json',
+          },
           resolvers: [IconsResolver(), ElementPlusResolver()],
           dts: fileURLToPath(
               new URL("./types/auto-imports.d.ts", import.meta.url),
@@ -48,13 +95,15 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
           dts: fileURLToPath(
               new URL("./types/components.d.ts", import.meta.url),
           ),
+          dirs: fileURLToPath(
+            new URL("./src/components", import.meta.url),
+        ),
       }),
       // 自动安装图标
       Icons({
           autoInstall: true,
       }),
-
-
+      manualChunksPlugin()
     ],
     // 运行后本地预览的服务器
     server: {
@@ -108,13 +157,39 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
         input: {
           index: fileURLToPath(new URL('./index.html', import.meta.url)),
         },
-        // 静态资源分类打包
-        output: {
-          format: 'esm',
-          chunkFileNames: 'static/js/[name]-[hash].js',
-          entryFileNames: 'static/js/[name]-[hash].js',
-          assetFileNames: 'static/[ext]/[name]-[hash].[ext]',
+        external: ['moment', 'video.js', 'jspdf','xlsx','echart'],
+        plugins:[visualizer({open: true}), globals],
+        experimentalLogSideEffects: true,
+        treeshake: {
+          preset: 'recommended',
+     
         },
+        output: {
+          experimentalMinChunkSize: 1024 * 20,
+          manualChunks:(id: string) => {
+            // if (id.includes('html-canvans')) {
+            //   return 'html-canvans';
+            // }
+             if (id.includes('node_modules')) {
+                 return 'vendor';
+             }
+            //  if (id.includes('src/views/about')) {
+            //   return 'about';
+            //  }
+            //  if (id.includes('src/views/auth')) {
+            //   return 'auth';
+            //  }
+  
+          },
+        },
+   
+        // 静态资源分类打包
+        // output: {
+        //   format: 'esm',
+        //   chunkFileNames: 'static/js/[name]-[hash].js',
+        //   entryFileNames: 'static/js/[name]-[hash].js',
+        //   assetFileNames: 'static/[ext]/[name]-[hash].[ext]',
+        // },
       },
     },
     // 配置别名
@@ -122,7 +197,7 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
         '#': fileURLToPath(new URL('./types', import.meta.url)),
-      },
-    },
+      }
+    }
   };
 });

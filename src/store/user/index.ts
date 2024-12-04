@@ -1,7 +1,7 @@
 import { defineStore } from   'pinia';
 import pinia from '@/store';
-import { userLogin, refreshUserInfo } from '@/api/user';
-
+import { userLogin } from '@/api/user';
+import router from '@/router';
 export interface UserState {
     username: string;
     accessToken: string;
@@ -24,21 +24,26 @@ export const useUserStoreHook = defineStore('userInfo', {
                 return res;
             });
         },
-        storeRefreshUserInfo() {
-            if (this.username == '大伟' && this.accessToken != '') {
-                refreshUserInfo({
-                    accessToken: this.accessToken
-                })
-                    .then((res) => {
-                        this.username = res.username;
-                        this.roles = res.roles;
-                        this.accessToken = res.accessToken;
-                    })
-                    .catch(() => {
-                        this.accessToken = '';
-                    });
-            }
-        }
+        logout() {
+                    sessionStorage.removeItem('userInfo');
+                    this.accessToken ='';
+                    router.push('/login');
+        },
+        // storeRefreshUserInfo() {
+        //     if (this.username == '大伟' && this.accessToken != '') {
+        //         refreshUserInfo({
+        //             accessToken: this.accessToken
+        //         })
+        //             .then((res) => {
+        //                 this.username = res.username;
+        //                 this.roles = res.roles;
+        //                 this.accessToken = res.accessToken;
+        //             })
+        //             .catch(() => {
+        //                 this.accessToken = '';
+        //             });
+        //     }
+        // }
     },
     persist: {
         key: 'userInfo',
