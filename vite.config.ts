@@ -3,22 +3,22 @@ import { viteMockServe } from "vite-plugin-mock";
 import {visualizer} from "rollup-plugin-visualizer";
 import externalGlobals from 'rollup-plugin-external-globals';
 import type { UserConfig, ConfigEnv } from 'vite';
-import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
+// import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 import IconsResolver from "unplugin-icons/resolver";
-import ElementPlus from "unplugin-element-plus/vite";
+// import ElementPlus from "unplugin-element-plus/vite";
 import Components from "unplugin-vue-components/vite";
 import Icons from "unplugin-icons/vite";
 import { fileURLToPath } from 'url';
 import AutoImport from "unplugin-auto-import/vite";
 import vue from '@vitejs/plugin-vue';
 import vueJsx from '@vitejs/plugin-vue-jsx';
-import ViteCompression from "vite-plugin-compression";
-import brotli from "rollup-plugin-brotli";
-import experimentalMinChunkSize from 'rollup-plugin-minify-html-literals';
-import {createHtmlPlugin} from "vite-plugin-html";
+import { VantResolver } from '@vant/auto-import-resolver';
+// import ViteCompression from "vite-plugin-compression";
+// import brotli from "rollup-plugin-brotli";
+// import experimentalMinChunkSize from 'rollup-plugin-minify-html-literals';
+// import {createHtmlPlugin} from "vite-plugin-html"; 
 import  {manualChunksPlugin} from 'vite-plugin-webpackchunkname';
 
-// import { S } from 'vitest/dist/chunks/reporters.D7Jzd9GS';
 
 const globals = externalGlobals({
   moment: 'moment',
@@ -54,17 +54,17 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
       //   algorithm: 'gzip', // 压缩算法
       // }),
       // Vue模板文件编译插件
-      createHtmlPlugin({
-          inject: {
-              data: {
-                monentscript: '<script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/min/moment.js"></script>',
-                videoscript: '<script src="https://cdn.jsdelivr.net/npm/video.js@7.14.3/dist/video.min.js"></script>',
-                echartscript: '<script src="https://cdn.jsdelivr.net/npm/echarts@5.2.1/echarts"></script>',
-                jspdfscript: '<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/pdf.js"></script>',
-                xlsxscript:  '<script src="https://cdn.jsdelivr.net/npm/xlsx@0.17.4/dist/xlsx.full.min.js"></script>'
-              }
-          }
-      }),
+      // createHtmlPlugin({
+      //     inject: {
+      //         data: {
+      //           monentscript: '<script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/min/moment.js"></script>',
+      //           videoscript: '<script src="https://cdn.jsdelivr.net/npm/video.js@7.14.3/dist/video.min.js"></script>',
+      //           echartscript: '<script src="https://cdn.jsdelivr.net/npm/echarts@5.2.1/echarts"></script>',
+      //           jspdfscript: '<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/pdf.js"></script>',
+      //           xlsxscript:  '<script src="https://cdn.jsdelivr.net/npm/xlsx@0.17.4/dist/xlsx.full.min.js"></script>'
+      //         }
+      //     }
+      // }),
       vue(),
       // jsx文件编译插件
       vueJsx(), 
@@ -74,7 +74,7 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
         enable: true, // 本地开发是否启用
         // prodEnabled: false, // 生产模式是否启用
       }),
-      ElementPlus({}),
+      // ElementPlus({}),
       // 自动引入组件及ICON
       AutoImport({
           //定义需要自动引入的框架
@@ -84,14 +84,14 @@ export default defineConfig(({ mode }: ConfigEnv): UserConfig => {
               enabled: true,
               filepath: './.eslintrc-auto-import.json',
           },
-          resolvers: [IconsResolver(), ElementPlusResolver()],
+          resolvers: [IconsResolver(), VantResolver()],
           dts: fileURLToPath(
               new URL("./types/auto-imports.d.ts", import.meta.url),
           ),
       }),
       // 自动注册组件
       Components({
-          resolvers: [IconsResolver(), ElementPlusResolver()],
+          resolvers: [IconsResolver(), VantResolver()],
           dts: fileURLToPath(
               new URL("./types/components.d.ts", import.meta.url),
           ),
